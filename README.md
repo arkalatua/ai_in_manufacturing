@@ -1,4 +1,4 @@
-# CMP Digital Twin: live demo (ME6324, Group 37)
+# CMP Digital Twin (ME6324)
 
 A Streamlit "fab simulator". It replays 791 real CMP wafers in time order. These wafers come from day 40.7 to day 65 of the PHM 2016 data, and the twin never saw them during training. For each wafer the twin:
 1. predicts MRR with an uncertainty band,
