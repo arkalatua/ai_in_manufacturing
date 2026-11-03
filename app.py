@@ -135,11 +135,9 @@ def simulate(threshold):
     return tc.run_loop(stream, history, meta, threshold=threshold)
 
 
-@st.cache_data(show_spinner='Computing metrology trade-off curve (one-off, a few seconds)...')
+@st.cache_data(show_spinner=False)
 def tradeoff_curve():
-    lo = np.quantile(simulate(0.0).sigma, 0.03)      # every wafer measured -> smallest achievable sigma
-    hi = np.quantile(simulate(1e9).sigma, 0.60)      # nothing measured -> sigma keeps growing
-    return tc.tradeoff(stream, history, meta, np.linspace(lo, hi, 12), n_random=8)
+    return tc.load_tradeoff(stream, history, meta)      # precomputed in demo_data/tradeoff.csv
 
 
 # ----------------------------------------------------------------------------------------------------------------

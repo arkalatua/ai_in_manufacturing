@@ -397,4 +397,8 @@ for m in MODES:
     err = np.abs(o['mu'] - pd_['mu'][sel]).max()
     print(f'numpy vs torch forward pass, mode {m}: max |diff| = {err:.2e} nm/min')
     assert err < 1e-3
+
+# Metrology trade-off curve for the savings tab (slow, so precomputed here instead of on app start-up)
+s_, h_, m_, _ = twin_core.load()
+twin_core.default_tradeoff(s_, h_, m_).to_csv(f'{OUT}/tradeoff.csv', index=False)
 print(f'done in {time.time() - t_all:.0f}s -> {OUT}')

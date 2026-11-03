@@ -100,6 +100,20 @@ def tradeoff(stream, history, meta, thresholds, n_random=8, seed=0):
     return pd.DataFrame(rows)
 
 
+def default_tradeoff(stream, history, meta):
+    """Trade-off curve shown in the app. Precomputed into demo_data/tradeoff.csv because it takes several seconds."""
+    lo = np.quantile(run_loop(stream, history, meta, threshold=0.0).sigma, 0.03)    # every wafer measured -> smallest sigma
+    hi = np.quantile(run_loop(stream, history, meta, threshold=1e9).sigma, 0.60)    # nothing measured -> sigma keeps growing
+    return tradeoff(stream, history, meta, np.linspace(lo, hi, 12), n_random=8)
+
+
+def load_tradeoff(stream, history, meta):
+    path = os.path.join(DATA, 'tradeoff.csv')
+    if os.path.exists(path):
+        return pd.read_csv(path)
+    return default_tradeoff(stream, history, meta)
+
+
 # ---------------------------------------------------------------------------------------------------------------
 # Numpy forward pass of the 5-member twin (for the what-if panel)
 # ---------------------------------------------------------------------------------------------------------------
