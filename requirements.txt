@@ -1,0 +1,7 @@
+streamlit>=1.50
+plotly>=5.20
+numpy>=1.26
+pandas>=2.1
+# only needed to regenerate demo_data/ with generate_demo_data.py:
+# torch>=2.2
+# scikit-learn>=1.4
