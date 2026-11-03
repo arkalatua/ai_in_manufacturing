@@ -1,5 +1,5 @@
 """
-CMP Digital Twin - live demo
+CMP Digital Twin - live dashboard
 Run:  streamlit run app.py
 """
 import numpy as np
@@ -12,7 +12,7 @@ import twin_core as tc
 st.set_page_config(page_title='CMP Digital Twin', layout='wide')
 
 # ----------------------------------------------------------------------------------------------------------------
-# Look & feel (light "lab instrument" style, large type for a projector)
+# Look & feel (light "lab instrument" style, large type for big screens)
 # ----------------------------------------------------------------------------------------------------------------
 BLUE, AQUA, INK, MUTED, GRID, AXIS = '#1f5fbf', '#2a8c7a', '#16181d', '#8a8c91', '#e6e4dd', '#16181d'
 RED, GREEN, ORANGE, VIOLET, YELLOW = '#b4332f', '#2f7d3a', '#c65d21', '#5b4bb7', '#b8860b'
@@ -26,7 +26,7 @@ st.markdown("""
           --sans:'IBM Plex Sans','Segoe UI',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace; }
   html, body, [class*="css"], .stApp, .stMarkdown, button, input, label { font-family: var(--sans); }
   html, body { font-size: 17px; }
-  .block-container { padding-top: 1.4rem; padding-bottom: 1rem; max-width: 1500px; }
+  .block-container { padding-top: 1.4rem; padding-bottom: 1rem; max-width: 1720px; }
   #MainMenu, footer, [data-testid="stToolbar"], [data-testid="stDecoration"], .stDeployButton { display: none !important; }
   header[data-testid="stHeader"] { background: transparent; }
 
@@ -35,16 +35,22 @@ st.markdown("""
           border-bottom: 2px solid var(--ink); padding-bottom: .55rem; }
   .mast-title { font-size: 1.7rem; font-weight: 600; letter-spacing: .01em; line-height: 1.1; }
   .mast-sub { font-size: .95rem; color: var(--second); margin-top: .2rem; }
-  .mast-meta { font-family: var(--mono); font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: var(--second); text-align:right; }
-  .mast-desc { color: var(--second); font-size: .92rem; max-width: 95ch; margin: .6rem 0 .2rem 0; }
+  .mast-meta { font-size: .85rem; color: var(--second); text-align:right; line-height: 1.4; }
+  .mast-desc { color: var(--second); font-size: .92rem; max-width: 80ch; margin: .6rem 0 .4rem 0; }
 
-  /* micro-labels, ledes, footnote */
-  .lede { color: var(--second); font-size: .98rem; max-width: 82ch; margin: .2rem 0 .8rem 0;
-          border-left: 2px solid var(--line); padding-left: .8rem; }
-  .section { font-size: .78rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--second);
-             border-bottom: 1px solid var(--line); padding-bottom: .35rem; margin: 1.4rem 0 .6rem 0; }
-  .foot { font-family: var(--mono); font-size: .74rem; color: var(--second); border-top: 1px solid var(--line);
-          padding-top: .6rem; margin-top: 1.4rem; }
+  /* ledes, section headings, footnote */
+  .lede { color: var(--second); font-size: .98rem; max-width: 78ch; margin: .4rem 0 1.1rem 0; }
+  .section { font-size: 1rem; font-weight: 600; color: var(--ink); margin: 1.6rem 0 .5rem 0; }
+  .chart-title { font-size: .95rem; font-weight: 600; margin: .6rem 0 0 0; }
+  .chart-title span { font-weight: 400; color: var(--second); }
+  .foot { border-top: 1px solid var(--line); margin-top: 2.5rem; padding-top: 1.1rem; font-size: .82rem; color: var(--second);
+          display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1.2rem 2rem; }
+  .foot h5 { font-size: .85rem !important; font-weight: 600; color: var(--ink); margin: 0 0 .35rem 0 !important; padding: 0 !important; }
+  .foot p { margin: 0 0 .4rem 0; line-height: 1.45; }
+  .foot a { color: var(--accent); text-decoration: none; }
+  .foot a:hover { text-decoration: underline; }
+  .foot cite { font-style: italic; }
+  [data-testid="stVerticalBlock"] { gap: .9rem; }
 
   /* tabs: flat underline */
   .stTabs [data-baseweb="tab-list"] { gap: 1.6rem; border-bottom: 1px solid var(--line); }
@@ -55,14 +61,16 @@ st.markdown("""
 
   /* metrics: readout with hairline rule, mono value */
   [data-testid="stMetric"] { border-top: 1px solid var(--ink); padding: .45rem 0 .2rem 0; background: transparent; }
-  [data-testid="stMetricLabel"] p { font-size: .74rem; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: var(--second); }
+  [data-testid="stMetricLabel"] p { font-size: .88rem; font-weight: 500; color: var(--second); }
   [data-testid="stMetricValue"] { font-family: var(--mono); font-size: 1.95rem; font-weight: 500; font-variant-numeric: tabular-nums; }
   [data-testid="stMetricDelta"] { font-family: var(--mono); font-size: .85rem; }
 
   /* sidebar */
   [data-testid="stSidebar"] { border-right: 1px solid var(--line); }
-  [data-testid="stSidebar"] h3 { font-size: .76rem !important; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
-                                 color: var(--second); border-bottom: 1px solid var(--line); padding: 1rem 0 .35rem 0 !important; margin-bottom: .5rem; }
+  [data-testid="stSidebar"] h3 { font-size: .95rem !important; font-weight: 600; color: var(--ink);
+                                 padding: 1.2rem 0 .1rem 0 !important; margin: 0; }
+  [data-testid="stSidebar"] [data-testid="stExpander"] details { border: 0; }
+  [data-testid="stExpander"] details { border-radius: 3px; border-color: var(--line); }
 
   /* buttons + inputs */
   .stButton button { border-radius: 3px; border: 1px solid #b9b7af; font-weight: 500; box-shadow: none; }
@@ -72,14 +80,12 @@ st.markdown("""
 
   /* wafer readout card */
   .wafer-card { border: 1px solid var(--line); border-top: 2px solid var(--ink); background: var(--panel); padding: .8rem 1rem .9rem 1rem; }
-  .wc-head { display:flex; justify-content:space-between; font-family: var(--mono); font-size: .8rem; letter-spacing: .06em;
-             text-transform: uppercase; color: var(--second); margin-bottom: .5rem; }
+  .wc-head { display:flex; justify-content:space-between; font-size: .85rem; color: var(--second); margin-bottom: .5rem; }
   .big { font-family: var(--mono); font-size: 2.2rem; font-weight: 500; line-height: 1.1; font-variant-numeric: tabular-nums; }
   .big small { font-size: 1rem; color: var(--second); }
   .wc-cap { font-size: .8rem; color: var(--second); margin-bottom: .7rem; }
-  .status { border-left: 4px solid; padding: .45rem .7rem; font-size: .82rem; font-weight: 600; letter-spacing: .1em;
-            text-transform: uppercase; margin-bottom: .7rem; }
-  .status span { display:block; font-weight: 400; letter-spacing: 0; text-transform: none; font-size: .85rem; color: var(--second); margin-top: .1rem; }
+  .status { border-left: 4px solid; padding: .45rem .7rem; font-size: .95rem; font-weight: 600; margin-bottom: .7rem; }
+  .status span { display:block; font-weight: 400; font-size: .85rem; color: var(--second); margin-top: .1rem; }
   .status-meas { border-color: #b4332f; background: #f8ecea; color: #8e2421; }
   .status-skip { border-color: #2f7d3a; background: #ebf3ea; color: #24602d; }
   .kv { display:flex; justify-content:space-between; border-top: 1px dashed var(--line); padding: .3rem 0; font-size: .88rem; }
@@ -106,6 +112,10 @@ def style(fig, height=430, **kw):
 
 def lede(text):
     st.markdown(f"<div class='lede'>{text}</div>", unsafe_allow_html=True)
+
+
+def chart_title(text, note=''):
+    st.markdown(f"<div class='chart-title'>{text} <span>{note}</span></div>", unsafe_allow_html=True)
 
 
 # ----------------------------------------------------------------------------------------------------------------
@@ -153,37 +163,41 @@ with st.sidebar:
     def _reset():
         ss.idx = 0; ss.playing = False
 
+    if ss.idx == 0 and not ss.playing:
+        st.info('Press **Play** (or **Next wafer**) to start polishing.')
     c1, c2 = st.columns(2)
-    c1.button('Next wafer', on_click=_step, args=(1,), width='stretch')
-    c2.button('+25 wafers', on_click=_step, args=(25,), width='stretch')
+    c1.button('Pause' if ss.playing else 'Play', on_click=_toggle, type='primary', width='stretch')
+    c2.button('Reset', on_click=_reset, width='stretch')
     c3, c4 = st.columns(2)
-    c3.button('Pause' if ss.playing else 'Play', on_click=_toggle, type='primary', width='stretch')
-    c4.button('Reset', on_click=_reset, width='stretch')
-    speed = st.select_slider('Play speed (wafers per tick)', [1, 2, 4, 8, 16], value=4)
-    jump = st.slider('Jump to wafer #', 0, N, ss.idx, key=f'jump_{ss.idx}')
-    if jump != ss.idx:
-        ss.idx = jump; ss.playing = False
+    c3.button('Next wafer', on_click=_step, args=(1,), width='stretch')
+    c4.button('+25 wafers', on_click=_step, args=(25,), width='stretch')
+    with st.expander('Speed and position'):
+        speed = st.select_slider('Wafers per tick', [1, 2, 4, 8, 16], value=4)
+        jump = st.slider('Jump to wafer', 0, N, ss.idx, key=f'jump_{ss.idx}')
+        if jump != ss.idx:
+            ss.idx = jump; ss.playing = False
 
     st.markdown('### Metrology policy')
-    thr = st.slider('Send wafer to metrology if twin uncertainty σ exceeds (nm/min)', 2.8, 7.0, 4.4, 0.1)
+    thr = st.slider('Measure a wafer when σ exceeds (nm/min)', 2.8, 7.0, 4.4, 0.1,
+                    help='σ is the twin\'s own uncertainty for that wafer')
     res_full = simulate(thr)
-    st.caption(f'Over the full stream this policy measures **{100 * res_full.measured.mean():.0f}%** of wafers '
-               f'and lets **{100 * (1 - res_full.measured.mean()):.0f}%** skip metrology.')
+    st.caption(f'{100 * (1 - res_full.measured.mean()):.0f}% of wafers skip metrology with this limit.')
 
     st.markdown('### Chart')
-    chart_mode = st.radio('Tool mode shown', meta['MODES'], index=2, horizontal=True,
+    chart_mode = st.radio('Tool mode', meta['MODES'], index=2, horizontal=True,
                           help='A123 = stage A on chambers 1-3, A456 / B456 = stage A / B on chambers 4-6')
-    window = st.slider('Visible window (days)', 2, 25, 6)
-    show_gbm = st.toggle('Overlay black-box GBM baseline', value=False)
-    show_phys = st.toggle('Show Preston physics backbone', value=True)
+    show_gbm = st.toggle('Compare with black-box GBM', value=False)
+    with st.expander('Chart options'):
+        window = st.slider('Visible window (days)', 2, 25, 6)
+        show_phys = st.toggle('Show Preston physics line', value=True)
 
 res = res_full
 st.markdown(f"""<div class='mast'>
   <div><div class='mast-title'>CMP Digital Twin</div>
-       <div class='mast-sub'>Physics-informed MRR prediction · live fab replay</div></div>
-  <div class='mast-meta'>ME6324 · Group 37<br>PHM 2016 CMP data</div></div>
-<div class='mast-desc'>Wafers polished between day {meta['cut_day']:.1f} and day {stream.day.max():.0f} are replayed in
-time order. The twin was trained only on the {meta['n_train']:,} wafers before that and has never seen these {N} wafers.</div>""",
+       <div class='mast-sub'>Physics-informed removal-rate prediction and metrology decisions</div></div>
+  <div class='mast-meta'>PHM 2016 CMP dataset</div></div>
+<div class='mast-desc'>Replaying {N} wafers from day {meta['cut_day']:.0f} to {stream.day.max():.0f} that the twin
+never saw in training.</div>""",
             unsafe_allow_html=True)
 
 tab_live, tab_phys, tab_pad, tab_trade, tab_what = st.tabs(
@@ -195,8 +209,8 @@ tab_live, tab_phys, tab_pad, tab_trade, tab_what = st.tabs(
 # ----------------------------------------------------------------------------------------------------------------
 def waterfall(row, height=300):
     """How the twin builds this wafer's prediction: physics + bounded AI residual + metrology bias."""
-    steps = [('Preston physics', None, row.physics_term, AQUA), ('AI residual', row.physics_term, row.ai_residual, VIOLET),
-             ('Metrology bias', row.physics_term + row.ai_residual, row.bias, YELLOW), ('Twin prediction', None, row.pred, BLUE)]
+    steps = [('Physics', None, row.physics_term, AQUA), ('AI residual', row.physics_term, row.ai_residual, VIOLET),
+             ('Bias', row.physics_term + row.ai_residual, row.bias, YELLOW), ('Prediction', None, row.pred, BLUE)]
     lo = min(row.physics_term, row.pred, row.MRR_true, row.physics_term + row.ai_residual) - 6
     hi = max(row.physics_term, row.pred, row.MRR_true, row.physics_term + row.ai_residual) + 6
     fig = go.Figure()
@@ -210,7 +224,7 @@ def waterfall(row, height=300):
     fig.add_vline(x=row.MRR_true, line=dict(color=INK, dash='dot', width=2))
     fig.add_annotation(x=row.MRR_true, y=1.0, yref='paper', yanchor='bottom', showarrow=False,
                        text=f'true {row.MRR_true:.1f}', font=dict(size=13, color=INK))
-    style(fig, height=height, showlegend=False, margin=dict(l=10, r=40, t=28, b=40), bargap=0.35)
+    style(fig, height=height, showlegend=False, margin=dict(l=10, r=40, t=24, b=36), bargap=0.3)
     fig.update_yaxes(autorange='reversed', gridcolor='rgba(0,0,0,0)', ticks='', tickfont=dict(family=SANS, size=13, color=INK))
     fig.update_xaxes(range=[lo, hi + 3], title='nm/min')
     return fig
@@ -228,7 +242,7 @@ def stream_chart(r, mode, cur):
                                  hoverinfo='skip', name='twin ± 2σ'))
         if show_phys:
             fig.add_trace(go.Scatter(x=x, y=d.physics_term, mode='lines', line=dict(color=AQUA, width=2),
-                                     name='Preston physics backbone',
+                                     name='Preston physics',
                                      hovertemplate='physics %{y:.1f} nm/min<extra></extra>'))
         if show_gbm:
             fig.add_trace(go.Scatter(x=x, y=d.gbm_pred, mode='lines', line=dict(color=MUTED, width=2, dash='dash'),
@@ -237,7 +251,7 @@ def stream_chart(r, mode, cur):
                                  hovertemplate='twin %{y:.1f} nm/min<extra></extra>'))
         sk, me = d[~d.measured], d[d.measured]
         fig.add_trace(go.Scatter(x=sk.day, y=sk.MRR_true, mode='markers', marker=dict(color=INK, size=8),
-                                 name='true MRR (metrology skipped)', customdata=np.c_[sk.wafer_id, sk.err],
+                                 name='true MRR, skipped', customdata=np.c_[sk.wafer_id, sk.err],
                                  hovertemplate='wafer %{customdata[0]}<br>true %{y:.1f}<br>twin error %{customdata[1]:+.1f}<extra>skipped</extra>'))
         fig.add_trace(go.Scatter(x=me.day, y=me.MRR_true, mode='markers',
                                  marker=dict(color=RED, size=11, symbol='x-thin', line=dict(width=2.5, color=RED)),
@@ -248,10 +262,10 @@ def stream_chart(r, mode, cur):
             fig.add_annotation(x=dc, y=1, yref='paper', text='dresser change', showarrow=False, yanchor='bottom',
                                font=dict(color=ORANGE, size=13))
         if cur is not None and cur['mode'] == mode:
-            fig.add_trace(go.Scatter(x=[cur.day], y=[cur.pred], mode='markers', name='current wafer',
+            fig.add_trace(go.Scatter(x=[cur.day], y=[cur.pred], mode='markers', name='current wafer', showlegend=False,
                                      marker=dict(size=18, color='rgba(0,0,0,0)', line=dict(color=BLUE, width=3))))
         fig.update_xaxes(range=[max(meta['cut_day'], t1 - window) - 0.05, t1 + 0.15])
-    style(fig, height=470, xaxis_title='day', yaxis_title=f'{mode} MRR (nm/min)')
+    style(fig, height=580, xaxis_title='day', yaxis_title=f'{mode} MRR (nm/min)', margin=dict(l=55, r=10, t=40, b=45))
     if not len(d):
         fig.add_annotation(text=f'No {mode} wafers processed yet. Press Play to start.', showarrow=False,
                            x=0.5, y=0.5, xref='paper', yref='paper', font=dict(size=18, color=MUTED))
@@ -274,43 +288,38 @@ def live_panel():
     k[0].metric('Wafers polished', f'{n} / {N}')
     k[1].metric('Skipped metrology',f'{100 * s["n_skip"] / n:.0f}%' if n else '–',
                 help='Share of wafers the twin released without a physical measurement')
-    k[2].metric('Twin RMSE', f'{s["rmse"]:.2f}' if ok else '–', help='nm/min, on wafers that skipped metrology')
+    k[2].metric('Twin RMSE', f'{s["rmse"]:.2f}' if ok else '–',
+                help=f'nm/min, on wafers that skipped metrology. Worst error {s["max"]:.1f}.' if ok else None)
     k[3].metric('Black-box RMSE', f'{s["gbm_rmse"]:.2f}' if ok else '–',
-                help='nm/min. Gradient boosting on the same skipped wafers, given the same metrology feedback')
-    if n:
-        st.caption(f'{s["n_meas"]} wafers sent to metrology · {s["n_skip"]} skipped · '
-                   + (f'worst twin error on a skipped wafer {s["max"]:.1f} nm/min (black-box {s["gbm_max"]:.1f}). ' if ok else '')
-                   + 'Errors are computed only where the fab relies on the twin.')
-    left, right = st.columns([2.3, 1])
+                help=(f'nm/min. Gradient boosting on the same skipped wafers, given the same metrology feedback. '
+                      f'Worst error {s["gbm_max"]:.1f}.') if ok else None)
+    left, right = st.columns([3.3, 1], gap='medium')
     with left:
         st.plotly_chart(stream_chart(r, chart_mode, cur), width='stretch', key='stream')
     with right:
-        if cur is None:
-            st.info('Press **Play** (or **Next wafer**) in the sidebar to start polishing.')
-        else:
-            status = ("<div class='status status-meas'>Send to metrology<span>σ above policy limit</span></div>"
+        if cur is not None:
+            status = (f"<div class='status status-meas'>Send to metrology<span>σ {cur.sigma:.2f} is above the limit of {thr:.1f}</span></div>"
                       if cur.measured else
-                      "<div class='status status-skip'>Skip metrology<span>Twin is confident</span></div>")
+                      f"<div class='status status-skip'>Skip metrology<span>σ {cur.sigma:.2f} is within the limit of {thr:.1f}</span></div>")
             st.markdown(f"""<div class='wafer-card'>
-                <div class='wc-head'><span>Mode {cur['mode']} · day {cur.day:.2f}</span><span>wafer {int(cur.wafer_id)}</span></div>
+                <div class='wc-head'><span>Wafer {int(cur.wafer_id)}, mode {cur['mode']}</span><span>day {cur.day:.2f}</span></div>
                 <div class='big'>{cur.pred:.1f} <small>± {2 * cur.sigma:.1f} nm/min</small></div>
-                <div class='wc-cap'>predicted MRR, 95% band</div>
+                <div class='wc-cap'>Predicted removal rate (95% band)</div>
                 {status}
-                <div class='kv'><span>σ / policy limit</span><b>{cur.sigma:.2f} / {thr:.1f}</b></div>
                 <div class='kv'><span>True MRR</span><b>{cur.MRR_true:.1f}</b></div>
-                <div class='kv'><span>Twin error</span><b>{cur.err:+.1f}</b></div>
-                <div class='kv'><span>GBM error</span><b>{cur.gbm_err:+.1f}</b></div></div>""", unsafe_allow_html=True)
-            st.plotly_chart(waterfall(cur, height=290), width='stretch', key='wf')
+                <div class='kv'><span>Twin error</span><b>{cur.err:+.1f}</b></div></div>""", unsafe_allow_html=True)
+            chart_title('How the prediction is built')
+            st.plotly_chart(waterfall(cur, height=230), width='stretch', key='wf')
 
     if n:
-        log = r.iloc[::-1].head(8)
+        log = r.iloc[::-1].head(10)
         tbl = pd.DataFrame({
             'wafer': log.wafer_id.astype(int).astype(str), 'mode': log['mode'], 'day': log.day.round(2),
             'twin MRR': log.pred.round(1), '± 2σ': (2 * log.sigma).round(1), 'true MRR': log.MRR_true.round(1),
             'twin error': log.err.round(1), 'GBM error': log.gbm_err.round(1),
             'decision': np.where(log.measured, 'metrology', 'skip')})
-        st.markdown("<div class='section'>Recent wafers</div>", unsafe_allow_html=True)
-        st.dataframe(tbl, hide_index=True, width='stretch', height=318)
+        with st.expander(f'Recent wafers ({s["n_meas"]} measured, {s["n_skip"]} skipped so far)'):
+            st.dataframe(tbl, hide_index=True, width='stretch')
 
 
 with tab_live:
@@ -324,12 +333,12 @@ with tab_phys:
     r = res.iloc[:n] if ss.idx else res
     share = (r.ai_residual.abs() / r.pred).mean() * 100
     bound_pct = 15
-    c = st.columns(4)
-    c[0].metric('Average |AI residual|', f'{r.ai_residual.abs().mean():.2f} nm/min')
-    c[1].metric('Residual as % of prediction', f'{share:.1f}%')
-    c[2].metric('Physics share of prediction', f'{100 - share:.1f}%')
-    c[3].metric('Hard bound on AI residual', f'± {bound_pct}%', help='of the mode mean MRR')
     lede('The AI term only corrects what Preston + pad-state physics misses, and it can never exceed its bound.')
+    c = st.columns(3)
+    c[0].metric('Physics share of prediction', f'{100 - share:.1f}%')
+    c[1].metric('Average |AI residual|', f'{r.ai_residual.abs().mean():.2f} nm/min')
+    c[2].metric('Hard bound on AI residual', f'± {bound_pct}%', help='of the mode mean MRR')
+    left, right = st.columns(2, gap='large')
     d = r[r['mode'] == chart_mode].tail(60)
     bound = 0.15 * meta['mrr_mean'][meta['MODES'].index(chart_mode)]
     fig = go.Figure()
@@ -341,24 +350,26 @@ with tab_phys:
         fig.add_hline(y=sgn * bound, line=dict(color=RED, dash='dash'),
                       annotation_text=f'{"+" if sgn > 0 else "−"}bound ({bound:.1f} nm/min)',
                       annotation_position='top right' if sgn > 0 else 'bottom right')
-    style(fig, height=380, showlegend=False, xaxis_title=f'last {len(d)} {chart_mode} wafers processed',
-          yaxis_title='AI residual (nm/min)')
+    style(fig, height=400, showlegend=False, xaxis_title=f'last {len(d)} {chart_mode} wafers processed',
+          yaxis_title='AI residual (nm/min)', margin=dict(l=60, r=20, t=20, b=50))
     fig.update_yaxes(range=[-bound * 1.25, bound * 1.25])
-    st.plotly_chart(fig, width='stretch')
+    with left:
+        chart_title('AI residual per wafer', 'stays inside the dashed bound')
+        st.plotly_chart(fig, width='stretch')
 
     r = r[r['mode'] == chart_mode]
     fig2 = go.Figure()
-    fig2.add_trace(go.Scatter(x=r.physics_term, y=r.MRR_true, mode='markers', name='physics term only',
+    fig2.add_trace(go.Scatter(x=r.physics_term, y=r.MRR_true, mode='markers', name='physics only',
                               marker=dict(color=AQUA, size=7, opacity=.7)))
-    fig2.add_trace(go.Scatter(x=r.pred, y=r.MRR_true, mode='markers', name='full twin (physics + AI + assimilation)',
+    fig2.add_trace(go.Scatter(x=r.pred, y=r.MRR_true, mode='markers', name='full twin',
                               marker=dict(color=BLUE, size=7, opacity=.7)))
     lo, hi = r.MRR_true.min() - 5, r.MRR_true.max() + 5
     fig2.add_trace(go.Scatter(x=[lo, hi], y=[lo, hi], mode='lines', line=dict(color=MUTED, dash='dot'), name='perfect'))
     rm_p = np.sqrt(np.mean((r.physics_term - r.MRR_true) ** 2)); rm_t = np.sqrt(np.mean((r.pred - r.MRR_true) ** 2))
-    style(fig2, height=430, xaxis_title='predicted MRR (nm/min)', yaxis_title='true MRR (nm/min)',
-          title=dict(text=f'{chart_mode} parity: physics term alone RMSE {rm_p:.2f} → full twin RMSE {rm_t:.2f} nm/min', x=0, y=0.98))
-    fig2.update_layout(margin=dict(t=80))
-    st.plotly_chart(fig2, width='stretch')
+    style(fig2, height=400, xaxis_title='predicted MRR (nm/min)', yaxis_title='true MRR (nm/min)')
+    with right:
+        chart_title(f'Predicted vs true, {chart_mode}', f'RMSE {rm_p:.2f} physics only, {rm_t:.2f} full twin')
+        st.plotly_chart(fig2, width='stretch')
 
 # ----------------------------------------------------------------------------------------------------------------
 # Tab 3: latent pad state
@@ -379,10 +390,12 @@ with tab_pad:
     if now is not None:
         fig.add_vline(x=now, line=dict(color=INK, width=1.5))
         fig.add_annotation(x=now, y=0, yref='paper', yanchor='bottom', xanchor='left', text=' now', showarrow=False)
-    style(fig, height=360, showlegend=False, xaxis_title='day (deployment period)',
+    style(fig, height=400, showlegend=False, xaxis_title='day (deployment period)',
           yaxis_title=f'{chart_mode} k_p (nm/min at nominal P, V)')
-    fig.update_layout(margin=dict(t=50))
-    st.plotly_chart(fig, width='stretch')
+    left, right = st.columns(2, gap='large')
+    with left:
+        chart_title('Wear coefficient over time', 'k<sub>p</sub> resets at each dresser change')
+        st.plotly_chart(fig, width='stretch')
 
     m = meta['MODES'].index(chart_mode)
     rel = d.MRR_true / (d.physics_term / d.z_dresser)          # measured MRR with everything except dresser wear divided out
@@ -394,15 +407,15 @@ with tab_pad:
                   for k in range(meta['n_ensemble'])], 0)
     r_corr = np.corrcoef(g['mean'], np.interp(g.u, xs, zc))[0, 1]
     fig2 = go.Figure()
-    fig2.add_trace(go.Scatter(x=g.u, y=g['mean'], mode='markers', name='measured MRR (binned, ± 1 s.e.)',
+    fig2.add_trace(go.Scatter(x=g.u, y=g['mean'], mode='markers', name='measured (binned ± 1 s.e.)',
                               error_y=dict(type='data', array=g.se, color=INK, thickness=1.5),
                               marker=dict(color=INK, size=9), customdata=g.n,
                               hovertemplate='dresser usage %{x:.0f}<br>relative MRR %{y:.3f}<br>%{customdata} wafers<extra></extra>'))
-    fig2.add_trace(go.Scatter(x=xs, y=zc, mode='lines', line=dict(color=RED, width=3), name='learned pad-state ODE  z_d(dresser usage)'))
-    style(fig2, height=380, xaxis_title='dresser usage since last change', yaxis_title='relative MRR',
-          title=dict(text=f'Recovered wear law vs. {len(d)} unseen {chart_mode} wafers:  r = {r_corr:.2f}', x=0, y=0.98))
-    fig2.update_layout(margin=dict(t=80))
-    st.plotly_chart(fig2, width='stretch')
+    fig2.add_trace(go.Scatter(x=xs, y=zc, mode='lines', line=dict(color=RED, width=3), name='learned wear law'))
+    style(fig2, height=400, xaxis_title='dresser usage since last change', yaxis_title='relative MRR')
+    with right:
+        chart_title('Learned wear law vs unseen wafers', f'{len(d)} {chart_mode} wafers, r = {r_corr:.2f}')
+        st.plotly_chart(fig2, width='stretch')
 
 # ----------------------------------------------------------------------------------------------------------------
 # Tab 4: metrology trade-off + savings
@@ -411,35 +424,42 @@ with tab_trade:
     tr = tradeoff_curve()
     cur_skip = 100 * (1 - res_full.measured.mean())
     cur_st = tc.skipped_stats(res_full)
-    c = st.columns(4)
+    lede('Move the σ limit in the sidebar to trade measurements for accuracy. The twin chooses which wafers to '
+         'measure; the dashed line picks the same number at random.')
+    c = st.columns(3)
     c[0].metric('Wafers skipping metrology', f'{cur_skip:.0f}%')
-    c[1].metric('RMSE on skipped wafers', f'{cur_st["rmse"]:.2f} nm/min')
-    c[2].metric('95th-pct error on skipped', f'{cur_st["p95"]:.1f} nm/min')
-    c[3].metric('GBM RMSE on the same wafers', f'{cur_st["gbm_rmse"]:.2f} nm/min')
-    cc = st.columns(2)
-    for col, key, lab in [(cc[0], 'rmse', 'RMSE on skipped wafers (nm/min)'),
-                          (cc[1], 'max', 'worst |error| on skipped wafers (nm/min)')]:
+    c[1].metric('Twin RMSE on skipped wafers', f'{cur_st["rmse"]:.2f} nm/min',
+                help=f'95th-percentile error {cur_st["p95"]:.1f} nm/min')
+    c[2].metric('GBM RMSE on the same wafers', f'{cur_st["gbm_rmse"]:.2f} nm/min')
+    cc = st.columns(2, gap='large')
+    for col, key, title, lab in [(cc[0], 'rmse', 'Typical error', 'RMSE on skipped wafers (nm/min)'),
+                                 (cc[1], 'max', 'Worst-case error', 'worst |error| on skipped wafers (nm/min)')]:
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=tr.skip_pct, y=tr[f'{key}_twin'], mode='lines+markers', name='twin decides (uncertainty-guided)',
+        fig.add_trace(go.Scatter(x=tr.skip_pct, y=tr[f'{key}_twin'], mode='lines+markers', name='twin decides',
                                  line=dict(color=BLUE, width=2.5), marker=dict(size=9)))
-        fig.add_trace(go.Scatter(x=tr.skip_pct, y=tr[f'{key}_random'], mode='lines+markers', name='random sampling, same budget',
+        fig.add_trace(go.Scatter(x=tr.skip_pct, y=tr[f'{key}_random'], mode='lines+markers', name='random, same budget',
                                  line=dict(color=MUTED, width=2, dash='dash'), marker=dict(size=8, symbol='square')))
-        fig.add_vline(x=cur_skip, line=dict(color=INK, dash='dot'), annotation_text='current policy')
-        style(fig, height=380, xaxis_title='% of wafers skipping physical metrology', yaxis_title=lab)
-        col.plotly_chart(fig, width='stretch')
+        fig.add_vline(x=cur_skip, line=dict(color=INK, dash='dot'), annotation_text='current limit')
+        style(fig, height=380, xaxis_title='% of wafers skipping metrology', yaxis_title=lab)
+        with col:
+            chart_title(title, 'lower is better')
+            st.plotly_chart(fig, width='stretch')
 
-    st.markdown("<div class='section'>What this is worth to a fab · illustrative, edit the assumptions</div>",
-                unsafe_allow_html=True)
-    a = st.columns(4)
-    wpm = a[0].number_input('Wafer passes through CMP per month', 1000, 2_000_000, 100_000, 10_000)
-    base_rate = a[1].slider('Today: % of wafers measured', 5, 100, 50)
-    cost = a[2].number_input('Cost per metrology measurement (USD)', 1.0, 500.0, 25.0, 5.0)
-    cyc = a[3].number_input('Metrology minutes per measurement', 0.5, 30.0, 3.0, 0.5)
+    st.markdown("<div class='section'>What this is worth to a fab</div>", unsafe_allow_html=True)
+    inp, out = st.columns([1.3, 1], gap='large')
+    with inp:
+        st.caption('Illustrative assumptions. Edit them to match a real fab.')
+        a = st.columns(2)
+        wpm = a[0].number_input('CMP wafer passes per month', 1000, 2_000_000, 100_000, 10_000)
+        base_rate = a[1].number_input('% of wafers measured today', 5, 100, 50, 5)
+        cost = a[0].number_input('Cost per measurement (USD)', 1.0, 500.0, 25.0, 5.0)
+        cyc = a[1].number_input('Minutes per measurement', 0.5, 30.0, 3.0, 0.5)
     saved = wpm * base_rate / 100 * cur_skip / 100
-    b = st.columns(3)
-    b[0].metric('Measurements avoided per year', f'{12 * saved:,.0f}')
-    b[1].metric('Metrology cost avoided per year', f'${12 * saved * cost / 1e6:,.2f} M')
-    b[2].metric('Metrology tool-hours freed per year', f'{12 * saved * cyc / 60:,.0f} h')
+    with out:
+        out.metric('Metrology cost avoided per year', f'${12 * saved * cost / 1e6:,.2f} M')
+        b = out.columns(2)
+        b[0].metric('Measurements avoided', f'{12 * saved:,.0f}')
+        b[1].metric('Tool-hours freed', f'{12 * saved * cyc / 60:,.0f} h')
 
 # ----------------------------------------------------------------------------------------------------------------
 # Tab 5: what-if recipe explorer
@@ -447,7 +467,7 @@ with tab_trade:
 with tab_what:
     lede('Recipe exploration without burning test wafers: change pressure, platen speed and consumable age, '
          'and the twin answers instantly (5-model ensemble running live in numpy).')
-    l, rr = st.columns([1, 2])
+    l, rr = st.columns([1, 2.2], gap='large')
     with l:
         mode = st.radio('Tool mode', meta['MODES'], index=2, horizontal=True, key='wi_mode')
         ref = dict(meta['ref_point'][mode]); rg = meta['ranges'][mode]
@@ -467,8 +487,8 @@ with tab_what:
     with l:
         st.metric('Predicted MRR', f'{o["mu"][0]:.1f} ± {2 * o["sigma"][0]:.1f} nm/min',
                   f'{o["mu"][0] - base["mu"][0]:+.1f} vs typical recipe', delta_color='off')
-        st.caption(f'Preston physics {o["phys"][0]:.1f} + AI residual {o["resid"][0]:+.1f} nm/min · '
-                   f'wear coefficient k_p = {o["kp"][0]:.1f}')
+        st.caption(f'Preston physics {o["phys"][0]:.1f} + AI residual {o["resid"][0]:+.1f} nm/min. '
+                   f'Wear coefficient k_p = {o["kp"][0]:.1f}.')
     with rr:
         xs = np.linspace(0, 800, 120)
         f = feats(P, V, ud, ut); f['u_dresser'] = xs
@@ -481,11 +501,20 @@ with tab_what:
         fig.add_trace(go.Scatter(x=xs, y=cv['mu'], mode='lines', line=dict(color=BLUE, width=3), name='twin prediction'))
         fig.add_trace(go.Scatter(x=[ud], y=[o['mu'][0]], mode='markers', marker=dict(size=16, color=BLUE,
                                  line=dict(color='white', width=2)), name='this recipe'))
-        style(fig, height=450, xaxis_title='dresser usage since last change', yaxis_title=f'{mode} MRR (nm/min)',
-              title=dict(text='Predicted MRR over the dresser life at this recipe', x=0, y=0.98))
-        fig.update_layout(margin=dict(t=80))
+        style(fig, height=450, xaxis_title='dresser usage since last change', yaxis_title=f'{mode} MRR (nm/min)')
+        chart_title('Predicted MRR over the dresser life', 'at this recipe')
         st.plotly_chart(fig, width='stretch')
 
-st.markdown("<div class='foot'>Data: 2016 PHM Society Data Challenge (CMP). Twin = Preston backbone with latent pad-state "
-            "ODE + bounded residual net (5-member deep ensemble) + Bayesian assimilation of past metrology. "
-            "ME6324 · Group 37.</div>", unsafe_allow_html=True)
+st.markdown("""<div class='foot'>
+  <div><h5>Data</h5>
+    <p>CMP wafer dataset from the <a href='https://www.phmsociety.org/' target='_blank'>PHM Society 2016 Data Challenge</a>.</p>
+    <p>Trained on wafers up to day 40.7. Every wafer replayed here is unseen.</p></div>
+  <div><h5>Model</h5>
+    <p>Preston backbone with a latent pad-state ODE, a bounded residual network (5-member deep ensemble), and
+       Bayesian assimilation of past metrology.</p></div>
+  <div><h5>References</h5>
+    <p>F. W. Preston, <cite>The theory and design of plate glass polishing machines</cite>,
+       J. Soc. Glass Technol. 11, 214–256 (1927).</p>
+    <p>B. Lakshminarayanan, A. Pritzel, C. Blundell, <cite>Simple and scalable predictive uncertainty estimation
+       using deep ensembles</cite>, NeurIPS (2017).</p></div>
+</div>""", unsafe_allow_html=True)

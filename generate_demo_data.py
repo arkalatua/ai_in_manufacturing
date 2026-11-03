@@ -1,10 +1,9 @@
 """
-generate_demo_data.py  -  builds everything the Streamlit demo needs.
+generate_demo_data.py  -  trains the twin and builds everything the Streamlit dashboard needs.
 
-Re-uses the model code from the project notebook (sections 3, 5 and 8) unchanged and adds a
-chronological "deployment" set-up:
+Uses a chronological "deployment" set-up:
     * first 60 % of labelled wafers in time  -> training history (what the fab has already measured)
-    * last 40 %  (day ~40.7 -> 65)            -> deployment stream replayed live in the demo
+    * last 40 %  (day ~40.7 -> 65)            -> deployment stream replayed live in the dashboard
 
 Outputs (in ./demo_data):
     stream.csv        one row per deployment wafer: truth, twin mean, uncertainty, Preston term, AI residual,
@@ -46,7 +45,7 @@ def set_seed(s):
 set_seed(CFG['seed'])
 
 # ----------------------------------------------------------------------------------------------------------------
-# Section 2-3 of the notebook: load + wafer-level features (unchanged)
+# Load raw data + wafer-level features
 # ----------------------------------------------------------------------------------------------------------------
 def load_raw(split):
     files = sorted(glob.glob(os.path.join(ROOT, 'CMP-data', split, '*.csv')))
@@ -97,7 +96,7 @@ fsub = wafer_features(raw_te)
 lab_all['MRR'] = lab_all.MRR.astype(float)
 lab_all = lab_all[lab_all.MRR <= CFG['outlier_mrr']].reset_index(drop=True)
 
-T0 = min(lab_all.t_start.min(), fsub.t_start.min())            # same time origin as the notebook
+T0 = min(lab_all.t_start.min(), fsub.t_start.min())            # common time origin for all wafers
 for f in (lab_all,):
     f['day'] = (f.t_start - T0) / 86400.0
     f['day_end'] = (f.t_end - T0) / 86400.0
@@ -125,7 +124,7 @@ for f in (ftr, fdep):
 
 
 # ----------------------------------------------------------------------------------------------------------------
-# Section 5 of the notebook: physics-informed hybrid twin (unchanged)
+# Physics-informed hybrid twin
 # ----------------------------------------------------------------------------------------------------------------
 class Prep:
     def fit(self, df):

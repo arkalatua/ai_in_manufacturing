@@ -1,4 +1,4 @@
-"""Core logic for the live demo: load exported data, run the active metrology loop, numpy forward pass of the twin.
+"""Core logic for the live dashboard: load exported data, run the active metrology loop, numpy forward pass of the twin.
 No torch needed - the ensemble weights were exported to numpy by generate_demo_data.py."""
 import json, os
 import numpy as np
