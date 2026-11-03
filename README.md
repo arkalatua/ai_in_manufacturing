@@ -30,8 +30,3 @@ reproduces the deployment numbers in `results/summary.json`:
 
 To regenerate: `python generate_demo_data.py "/path/to/2016 PHM DATA CHALLENGE CMP DATA SET/"`. At the end it checks that the numpy
 model matches the torch model (max difference about 5e-5 nm/min).
-## Presenting tips
-* Start the app before class, then press **Reset**.
-* At 1280×720 projector resolution, zoom the browser to 80–90% (Ctrl/Cmd −). You can collapse the sidebar after pressing Play.
-* Use the **Tool mode shown** radio to switch between A123, A456 and B456. B456 has the strongest drift, so it makes the best story.
-* The cost figures in the savings tab are illustrative assumptions you can edit live. Present them as such.
