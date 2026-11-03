@@ -30,14 +30,6 @@ reproduces the deployment numbers in `results/summary.json`:
 
 To regenerate: `python generate_demo_data.py "/path/to/2016 PHM DATA CHALLENGE CMP DATA SET/"`. At the end it checks that the numpy
 model matches the torch model (max difference about 5e-5 nm/min).
-
-## Headline numbers (default policy: measure if σ > 4.4 nm/min)
-
-* The twin skips metrology on **42%** of wafers.
-* On those skipped wafers: **twin RMSE 3.97 nm/min, black-box GBM 6.43** (same wafers, same metrology feedback).
-* Worst error on a skipped wafer: **11.6 nm/min for the twin**, against 14.6 if the same number of wafers is skipped at random, and 23.7 for GBM.
-* At σ > 5.0, **62%** of wafers skip with RMSE 4.42.
-
 ## Presenting tips
 * Start the app before class, then press **Reset**.
 * At 1280×720 projector resolution, zoom the browser to 80–90% (Ctrl/Cmd −). You can collapse the sidebar after pressing Play.
